@@ -56,12 +56,62 @@ print(train_df.applymap(np.isreal).all(0))
 
 # Identified Three Categorical Variables: Surname, Geography and Gender
 
-#%% Drop obsolete id column
+#%%
 
-train_df.drop(labels='id', axis=1, inplace=True)
+train_df.head()
+
+#%%
+
+#Inspect different attributes
+
+train_df.id.describe()
+
+# ID is unique, seems to be relating to process (distinct applicant list also possible)
+
+#%%
+
+len(train_df.CustomerId.unique())
+
+# 23221 distinct values -> not unique (reuse possible, or multiple processes per Customer)
+
+# To investigate, we look at rows with same CustomerId
+
+train_df['CustomerId'].duplicated()
+
+#df = train_df[train_df.duplicated('CustomerId', keep=False)].sort_values('CustomerId')
+
+# Customer ID does not display any obvious pattern or relation to the respective process
+
+# I will replace the CustomerID with the respective count
+
+CustomerIdCounts = train_df['CustomerId'].value_counts()
+
+# Create a new column with counts based on CustomerId
+train_df['CustomerIdCounts'] = train_df['CustomerId'].map(CustomerIdCounts)
+
+# Drop the old 'CustomerId' column if needed
+train_df.drop(columns=['CustomerId'], inplace=True)
+
+# Rename the new column to 'CustomerId'
+train_df.rename(columns={'CustomerIdCounts': 'CustomerId'}, inplace=True)
+
+# Potentially use a zscaler to transform
+
+from sklearn import preprocessing
+
+# create a scaler using Z score normalization / Standardization on the Fare attribute
+# The Fare varies greatly, thus we want to normalize this attribute
+zscore_scaler = preprocessing.StandardScaler().fit(train_df[['CustomerId']])
+
+#Apply the Zscore scaler Fare attribute and assign to a new Zscore column
+train_df['CustomerId_zscore']=zscore_scaler.transform(train_df[['CustomerId']])
+
+train_df['CustomerId_zscore'].describe()
+
 
 #%%
 
 # One-Hot encoding of gender
 
-train_df = pd.get_dummies(train_df, columns=['Gender'], drop_first=True)
+#train_df = pd.get_dummies(train_df, columns=['Gender'], drop_first=True)
+
