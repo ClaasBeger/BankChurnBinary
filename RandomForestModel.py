@@ -85,4 +85,21 @@ print(f"Best Hyperparameters: {best_params}")
 
 rf_model = RandomForestClassifier(n_estimators=150, min_samples_split=2, min_samples_leaf=4, max_depth=10)
 
-save_model(rf_model)
+#save_model(rf_model)
+
+#%%
+
+train_df = pd.read_csv("train_cleaned.csv")
+
+test_df = pd.read_csv("test_cleaned.csv")
+
+y_train = train_df["Exited"]
+x_train = train_df.drop('Exited', axis=1)
+
+rf_model.fit(x_train, y_train)
+
+y_prob = rf_model.predict_proba(x_train)[:, 1]
+
+auc_roc = roc_auc_score(y_train, y_prob)
+print(f'AUC-ROC Score: {auc_roc}')
+
