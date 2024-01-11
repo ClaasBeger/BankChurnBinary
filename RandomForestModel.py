@@ -1,4 +1,6 @@
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import accuracy_score, classification_report, roc_auc_score
 import pandas as pd
@@ -102,4 +104,36 @@ y_prob = rf_model.predict_proba(x_train)[:, 1]
 
 auc_roc = roc_auc_score(y_train, y_prob)
 print(f'AUC-ROC Score: {auc_roc}')
+
+#%%
+
+## ENSEMBLE MODEL -------------------------------------------------------------
+
+# Train a logistic regression model
+model_lr = LogisticRegression()
+model_lr.fit(x_train, y_train)
+
+# Initialize the Gaussian Naive Bayes classifier
+model_nb = GaussianNB()
+
+# Fit the classifier on the training data
+model_nb.fit(x_train, y_train)
+
+# Get predictions from each model on the validation set
+pred_rf = rf_model.predict_proba(x_test)[:, 1]
+pred_nb = model_nb.predict_proba(x_test)[:, 1]
+pred_lr = model_lr.predict_proba(x_test)[:, 1]
+
+# Simple averaging of predictions
+ensemble_pred = (pred_rf*0.45 + pred_nb*0.35 + pred_lr*0.2)
+
+# Evaluate the ensemble on the validation set
+#ensemble_auc = roc_auc_score(y_train, ensemble_pred)
+#print(f'Ensemble AUC: {ensemble_auc}')
+
+test_df_result = pd.DataFrame(test_df['id'])
+
+test_df_result['Exited'] = ensemble_pred>0.5
+
+test_df_result.to_csv("Ensemble_Model.csv", index=False)
 
