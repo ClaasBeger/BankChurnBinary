@@ -17,7 +17,7 @@ x_test = test_df
 #%%
 
 # Train a logistic regression model
-model = LogisticRegression()
+model = LogisticRegression(penality='l2')
 model.fit(x_train, y_train)
 
 # Make predictions on the test set
