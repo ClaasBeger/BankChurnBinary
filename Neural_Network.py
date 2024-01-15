@@ -49,6 +49,35 @@ class ChurnClassifier(nn.Module):
         return x
     
 #%%
+
+class churnClassifier2H(nn.Module):
+    
+    def __init__(self, input_size, dropout=0.2):
+        super(churnClassifier2H, self).__init__()
+        self.fc1 = nn.Linear(input_size, 32)
+        self.dropout = nn.Dropout(dropout)
+        self.relu = nn.ReLU()
+        self.h1 = nn.Linear(32, 24)
+        self.h2 = nn.Linear(24, 16)
+        self.fc2 = nn.Linear(16, 1)
+        self.sigmoid = nn.Sigmoid()
+        
+    def forward(self, x):
+        x = self.fc1(x)
+        x = self.relu(x)
+        x = self.dropout(x)
+        x = self.h1(x)
+        x = self.relu(x)
+        x = self.dropout(x)
+        x = self.h2(x)
+        x = self.relu(x)
+        x = self.dropout(x)
+        x = self.fc2(x)
+        x = self.sigmoid(x)
+        return x
+        
+    
+#%%
     
 # Define loss function and optimizer
 criterion = nn.BCELoss()
