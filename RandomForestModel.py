@@ -133,7 +133,7 @@ ensemble_pred = (pred_rf*0.45 + pred_nb*0.35 + pred_lr*0.2)
 
 test_df_result = pd.DataFrame(test_df['id'])
 
-test_df_result['Exited'] = ensemble_pred>0.5
+test_df_result['Exited'] = ensemble_pred
 
-test_df_result.to_csv("Ensemble_Model.csv", index=False)
+test_df_result.to_csv("RF_NB_LR_Ensemble_Probs.csv", index=False)
 
