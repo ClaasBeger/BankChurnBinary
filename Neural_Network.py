@@ -229,6 +229,8 @@ def save_model(model):
 
 #%%
 
+criterion = nn.BCELoss()
+
 # Standardize the features
 scaler = StandardScaler()
 x_test[:] = scaler.fit_transform(x_test.copy())
@@ -311,7 +313,7 @@ y_prob = rf_model.predict_proba(X_test_tensor)[:, 1]
 ensemble_y_test = np.empty(shape=(110023))
 
 for index in range(len(ensemble_y_test)):
-    ensemble_y_test[index] = 0.6*y_pred_test.numpy()[index]+0.4*y_prob[index]
+    ensemble_y_test[index] = 0.5*y_pred_test.numpy()[index]+0.5*y_prob[index]
     
 #ensemble_y_test = np.add(0.6*y_pred_test.numpy(),0.4*y_prob)
 
@@ -319,7 +321,46 @@ test_df_result = pd.DataFrame(test_df['id'])
 
 test_df_result['Exited'] = ensemble_y_test
 
-test_df_result.to_csv("NN_RF_Ensemble_probs.csv", index=False)
+test_df_result.to_csv("NN_RF_Ensemble_probs_0.5.csv", index=False)
+
+
+# %%
+
+from xgboost import XGBClassifier
+
+from sklearn.ensemble import RandomForestClassifier
+
+model.eval()
+with torch.no_grad():
+    y_pred_test = model(X_test_tensor)
+
+# Create an XGBoost classifier
+gbmodel = XGBClassifier(colsample_bytree=0.8, learning_rate=0.15, max_depth=3, n_estimators=100, 
+                      subsample = 0.9)
+
+# Train the model on the training data
+gbmodel.fit(X_train_tensor, y_train_tensor)
+
+# Make predictions on the testing data
+y_pred = gbmodel.predict(X_test_tensor)
+
+rf_model = RandomForestClassifier(n_estimators=150, min_samples_split=2, min_samples_leaf=4, max_depth=10)
+
+rf_model.fit(X_train_tensor, y_train_tensor)
+
+y_prob = rf_model.predict_proba(X_test_tensor)[:, 1]
+
+
+ensemble_y_test = np.empty(shape=(110023))
+
+for index in range(len(ensemble_y_test)):
+    ensemble_y_test[index] = 0.5*y_pred_test.numpy()[index]+0.3*y_prob[index]+0.2*y_pred[index]
+    
+test_df_result = pd.DataFrame(test_df['id'])
+
+test_df_result['Exited'] = ensemble_y_test
+
+test_df_result.to_csv("NN_RF_XGB_Ensemble_probs.csv", index=False)
 
 
 
